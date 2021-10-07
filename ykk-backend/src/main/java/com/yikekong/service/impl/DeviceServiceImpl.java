@@ -36,4 +36,12 @@ public class DeviceServiceImpl implements DeviceService{
         DeviceDTO deviceDTO = esRepository.searchDeviceById(deviceId);
         return deviceDTO;
     }
+
+    @Override
+    public boolean updateTags(String deviceId, String tags) {
+        DeviceDTO deviceStatus = findDevice(deviceId);
+        if(deviceStatus == null) return false;
+        esRepository.updateDeviceTag(deviceId,tags);
+        return true;
+    }
 }

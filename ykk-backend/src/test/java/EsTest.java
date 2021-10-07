@@ -47,4 +47,21 @@ public class EsTest {
         }
 
     }
+
+    @Test
+    public void testAlarm(){
+        DeviceDTO deviceDTO=new DeviceDTO();
+        deviceDTO.setDeviceId("123456");
+        deviceDTO.setAlarm(true);
+        deviceDTO.setLevel(1);
+        deviceDTO.setAlarmName("温度过高");
+
+        esRepository.updateDevicesAlarm(deviceDTO);
+
+    }
+
+    @Test
+    public void testOnline(){
+        esRepository.updateOnline("123456",false);
+    }
 }

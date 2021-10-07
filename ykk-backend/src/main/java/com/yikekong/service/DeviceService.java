@@ -11,4 +11,12 @@ public interface DeviceService  {
      * @return
      */
     boolean setStatus(String deviceId, Boolean status);
+
+    /**
+     * 更新设备标签
+     * @param deviceId
+     * @param tags
+     * @return
+     */
+    boolean updateTags(String deviceId,String tags);
 }

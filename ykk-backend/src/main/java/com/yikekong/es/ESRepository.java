@@ -103,4 +103,62 @@ public class ESRepository {
             return false;
         }
     }
+
+    /**
+     * 更新设备标签
+     * @param deviceId
+     * @param tags
+     * @return
+     */
+    public boolean updateDeviceTag(String deviceId,String tags){
+        UpdateRequest updateRequest=new UpdateRequest("devices",deviceId)
+                .doc( "tag",tags );
+        try {
+            restHighLevelClient.update( updateRequest,RequestOptions.DEFAULT );
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+            log.error("更新设备标签出错");
+            return false;
+        }
+    }
+
+    /**
+     * 更新设备告警信息
+     * @param deviceDTO
+     * @return
+     */
+    public boolean updateDevicesAlarm(DeviceDTO deviceDTO){
+        UpdateRequest updateRequest=new UpdateRequest("devices",deviceDTO.getDeviceId())
+                .doc(   "alarm",deviceDTO.getAlarm(),//是否告警
+                        "level",deviceDTO.getLevel(),//告警级别
+                        "alarmName",deviceDTO.getAlarmName() );//告警名称
+        try {
+            restHighLevelClient.update( updateRequest,RequestOptions.DEFAULT );
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+            log.error("更新设备告警信息出错");
+            return false;
+        }
+    }
+
+    /**
+     * 更新在线状态
+     * @param deviceId
+     * @param online
+     * @return
+     */
+    public boolean updateOnline(String deviceId,Boolean online){
+        UpdateRequest updateRequest=new UpdateRequest("devices",deviceId)
+                .doc( "online",online );
+        try {
+            restHighLevelClient.update( updateRequest,RequestOptions.DEFAULT );
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+            log.error("更新在线状态出错");
+            return false;
+        }
+    }
 }

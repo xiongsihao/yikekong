@@ -26,6 +26,12 @@ public class AuthFilter implements Filter{
             return;
         }
 
+        //tag接口不校验token tag接口供外部系统调用
+        if(path.contains("/device/tags")){
+            filterChain.doFilter(servletRequest, servletResponse);
+            return;
+        }
+
         String authToken = ((HttpServletRequest) servletRequest).getHeader("Authorization");
         if(Strings.isNullOrEmpty(authToken)){
             ((HttpServletResponse) servletResponse).setStatus(HttpStatus.UNAUTHORIZED.value());

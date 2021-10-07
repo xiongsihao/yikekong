@@ -23,4 +23,13 @@ public class DeviceController{
         return deviceService.setStatus(deviceVO.getSn(),deviceVO.getStatus());
     }
 
+    /**
+     * 设置标签的接口
+     * @param deviceVO
+     * @return
+     */
+    @PutMapping("/tags")
+    public boolean setTags(@RequestBody DeviceVO deviceVO){
+        return deviceService.updateTags(deviceVO.getSn(),deviceVO.getTags());
+    }
 }
