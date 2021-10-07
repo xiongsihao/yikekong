@@ -1,6 +1,8 @@
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.yikekong.YkkApplication;
 import com.yikekong.dto.DeviceDTO;
 import com.yikekong.es.ESRepository;
+import com.yikekong.util.JsonUtil;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,5 +32,19 @@ public class EsTest {
         deviceDTO.setOnline(true);
         deviceDTO.setTag("");
         esRepository.addDevices(deviceDTO);
+    }
+
+    @Test
+    public void testSearchById(){
+
+        DeviceDTO deviceDTO = esRepository.searchDeviceById("123456");
+        try {
+            String json = JsonUtil.serialize(deviceDTO);
+            System.out.println(json);
+
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+
     }
 }

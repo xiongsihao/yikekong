@@ -5,8 +5,14 @@ import com.yikekong.dto.DeviceDTO;
 import com.yikekong.util.JsonUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -43,6 +49,38 @@ public class ESRepository {
         } catch (IOException e) {
             e.printStackTrace();
             log.error("设备添加发生异常");
+        }
+    }
+
+    /**
+     * 根据设备id 查询设备
+     * @param deviceId  设备id
+     * @return
+     */
+    public DeviceDTO searchDeviceById(String deviceId){
+        SearchRequest searchRequest=new SearchRequest("devices");
+        SearchSourceBuilder searchSourceBuilder=new SearchSourceBuilder();
+        searchSourceBuilder.query(QueryBuilders.termQuery("_id",deviceId));
+        searchRequest.source(searchSourceBuilder);
+        try {
+            SearchResponse searchResponse = restHighLevelClient.search(searchRequest, RequestOptions.DEFAULT);
+
+            SearchHits hits = searchResponse.getHits();
+            long hitsCount = hits.getTotalHits().value;
+            if(hitsCount<=0) return null;
+            DeviceDTO deviceDTO=null;
+            for(SearchHit hit:hits){
+                String hitResult = hit.getSourceAsString();
+                deviceDTO=JsonUtil.getByJson(hitResult,DeviceDTO.class  );
+                deviceDTO.setDeviceId(deviceId);
+                break;
+            }
+            return deviceDTO;
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            log.error("查询设备异常");
+            return null;
         }
     }
 }
