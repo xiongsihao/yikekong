@@ -1,6 +1,9 @@
 package com.yikekong.service;
 
 
+import com.yikekong.dto.DeviceDTO;
+import com.yikekong.vo.Pager;
+
 public interface DeviceService  {
 
 
@@ -19,4 +22,14 @@ public interface DeviceService  {
      * @return
      */
     boolean updateTags(String deviceId,String tags);
+
+    /**
+     * 搜索设备
+     * @param page
+     * @param pageSize
+     * @param sn
+     * @param tag
+     * @return
+     */
+    Pager<DeviceDTO> queryPage(Long page, Long pageSize, String sn, String tag, Integer status);
 }
