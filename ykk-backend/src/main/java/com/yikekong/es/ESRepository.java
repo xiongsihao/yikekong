@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -81,6 +82,25 @@ public class ESRepository {
             e.printStackTrace();
             log.error("查询设备异常");
             return null;
+        }
+    }
+
+    /**
+     * 更新设备状态
+     * @param deviceId
+     * @param status
+     * @return
+     */
+    public boolean updateStatus(String deviceId,Boolean status){
+        UpdateRequest updateRequest=new UpdateRequest("devices",deviceId)
+                .doc( "status",status );
+        try {
+            restHighLevelClient.update( updateRequest,RequestOptions.DEFAULT );
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+            log.error("更新设备状态出错");
+            return false;
         }
     }
 }
