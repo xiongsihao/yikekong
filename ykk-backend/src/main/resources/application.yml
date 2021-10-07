@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: backend-service
+server:
+  port: 9093

@@ -1,0 +1,25 @@
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  cloud:
+    consul:
+      discovery:
+        service-name: ${spring.application.name}
+        instance-id: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
+        prefer-ip-address: true
+        health-check-interval: 10s
+        enabled: true
+        register: true
+        health-check-critical-timeout: 2m #2分钟之后健康检查未通过取消注册
+      host: 172.17.0.231 #${CONSUL-HOST:192.168.152.130}
+      port: ${CONSUL-PORT:8500}
+      config:
+        enabled: true
+        format: yaml
+        prefix: config
+        data-key: data
+        fail-fast: false
+        watch:
+          enabled: true
+          wait-time: 55
+          delay: 5000
