@@ -32,6 +32,12 @@ public class AuthFilter implements Filter{
             return;
         }
 
+        //设备断链监控，不需要登陆 放行
+        if(path.equals("/device/clientAction")){
+            filterChain.doFilter(servletRequest, servletResponse);
+            return;
+        }
+
         String authToken = ((HttpServletRequest) servletRequest).getHeader("Authorization");
         if(Strings.isNullOrEmpty(authToken)){
             ((HttpServletResponse) servletResponse).setStatus(HttpStatus.UNAUTHORIZED.value());

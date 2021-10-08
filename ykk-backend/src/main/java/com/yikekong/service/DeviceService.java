@@ -39,4 +39,11 @@ public interface DeviceService  {
      * @return
      */
     boolean saveDeviceInfo(DeviceDTO deviceDTO);
+
+    /**
+     * 更新在线状态
+     * @param deviceId
+     * @param online
+     */
+    void updateOnline(String deviceId, Boolean online);
 }

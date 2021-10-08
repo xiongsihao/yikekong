@@ -66,4 +66,23 @@ public class DeviceServiceImpl implements DeviceService{
         }
         return true;
     }
+
+    /**
+     * 更新
+     * @param deviceId
+     * @param online
+     */
+    @Override
+    public void updateOnline(String deviceId, Boolean online){
+        //以webclient开头的client为系统前端,monitor开头的是亿可控服务端
+        if(deviceId.startsWith("webclient") || deviceId.startsWith("monitor")){
+            return;
+        }
+        //更新数据到es
+        DeviceDTO deviceDTO = findDevice(deviceId);
+        if(deviceDTO == null) return;
+
+        deviceDTO.setOnline(online);
+        esRepository.updateOnline(deviceId,online);
+    }
 }
