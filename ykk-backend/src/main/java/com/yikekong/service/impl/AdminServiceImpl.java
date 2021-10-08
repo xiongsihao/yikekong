@@ -6,6 +6,7 @@ import com.google.common.base.Strings;
 import com.yikekong.entity.AdminEntity;
 import com.yikekong.mapper.AdminMapper;
 import com.yikekong.service.AdminService;
+import com.yikekong.util.SecurityUtils;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -24,8 +25,7 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper,AdminEntity> imple
         if(adminEntity == null)
             return -1;
 
-        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-        if(passwordEncoder.matches(password,adminEntity.getPassword())){
+        if(SecurityUtils.matchesPassword(password,adminEntity.getPassword())){
             return adminEntity.getId();
         }
 
