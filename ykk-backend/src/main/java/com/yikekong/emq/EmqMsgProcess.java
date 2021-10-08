@@ -1,5 +1,9 @@
 package com.yikekong.emq;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yikekong.dto.DeviceInfoDTO;
+import com.yikekong.service.AlarmService;
+import com.yikekong.service.DeviceService;
 import com.yikekong.service.QuotaService;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
@@ -8,6 +12,8 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.Map;
 
 /**
  * @author : xsh
@@ -23,6 +29,12 @@ public class EmqMsgProcess implements MqttCallback {
 
     @Autowired
     private EmqClient emqClient;
+
+    @Autowired
+    private AlarmService alarmService;
+
+    @Autowired
+    private DeviceService deviceService;
 
     //连接丢失时触发
     @Override
@@ -44,7 +56,17 @@ public class EmqMsgProcess implements MqttCallback {
     @Override
     public void messageArrived(String topic, MqttMessage mqttMessage) throws Exception {
         String payload = new String(mqttMessage.getPayload());
-        log.info("接收到数据："+payload);
+        ObjectMapper mapper = new ObjectMapper();
+        Map<String, Object> payloadMap = mapper.readValue(payload, Map.class);
+        log.info("接收到数据："+payloadMap);
+        //解析数据
+        DeviceInfoDTO deviceInfoDTO = quotaService.analysis(topic, payloadMap);
+        if(deviceInfoDTO!=null){
+            //告警判断
+            deviceInfoDTO= alarmService.verifyDeviceInfo(deviceInfoDTO);  //返回包含了告警判断的对象
+            //保存设备信息
+            deviceService.saveDeviceInfo(deviceInfoDTO.getDevice());
+        }
     }
 
     //传送完成后触发

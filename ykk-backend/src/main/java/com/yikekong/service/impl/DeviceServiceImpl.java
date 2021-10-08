@@ -50,4 +50,20 @@ public class DeviceServiceImpl implements DeviceService{
     public Pager<DeviceDTO> queryPage(Long page, Long pageSize, String sn, String tag, Integer status) {
         return  esRepository.searchDevice(page,pageSize,sn,tag,status);
     }
+
+    @Override
+    public boolean saveDeviceInfo(DeviceDTO deviceDTO) {
+        //查询设备 ，判断开关状态 ，如果是关闭则不处理
+        DeviceDTO device= findDevice(deviceDTO.getDeviceId());
+        if( device!=null && !device.getStatus() ) return false;
+
+        // 如果当前设备查不到，新增
+        if(device==null){
+            esRepository.addDevices( deviceDTO );
+        }else{
+            //如果可以查询到，更新告警信息
+            esRepository.updateDevicesAlarm(deviceDTO);
+        }
+        return true;
+    }
 }
