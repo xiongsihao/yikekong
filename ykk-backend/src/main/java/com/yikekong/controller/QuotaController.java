@@ -1,6 +1,7 @@
 package com.yikekong.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.yikekong.emq.EmqClient;
 import com.yikekong.entity.AlarmEntity;
 import com.yikekong.exception.BussinessException;
 import com.yikekong.service.AlarmService;
@@ -8,6 +9,8 @@ import com.yikekong.vo.Pager;
 import com.yikekong.vo.QuotaVO;
 import com.yikekong.entity.QuotaEntity;
 import com.yikekong.service.QuotaService;
+import lombok.extern.slf4j.Slf4j;
+import org.eclipse.paho.client.mqttv3.MqttException;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
@@ -15,12 +18,15 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/quota")
+@Slf4j
 public class QuotaController{
 
     @Autowired
     private QuotaService quotaService;
     @Autowired
     private AlarmService alarmService;
+    @Autowired
+    private EmqClient emqClient;
 
     /**
      * 创建指标
@@ -32,9 +38,14 @@ public class QuotaController{
         try {
             QuotaEntity quotaEntity = new QuotaEntity();
             BeanUtils.copyProperties(vo,quotaEntity);
+            //执行创建指标后对指标进行订阅
+            emqClient.subscribe("$queue/"+quotaEntity.getSubject());//添加这句！
             return quotaService.save(quotaEntity);
         }catch (DuplicateKeyException e){
             throw new BussinessException("已存在该名称");
+        } catch (MqttException e) {
+            log.error("订阅主题失败",e);
+            return false;
         }
     }
 
