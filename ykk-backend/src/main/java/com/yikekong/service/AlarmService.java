@@ -2,6 +2,8 @@ package com.yikekong.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.yikekong.dto.DeviceInfoDTO;
+import com.yikekong.dto.QuotaDTO;
 import com.yikekong.entity.AlarmEntity;
 
 import java.util.List;
@@ -25,9 +27,17 @@ public interface AlarmService extends IService<AlarmEntity>{
     List<AlarmEntity> getByQuotaId(Integer quotaId);
 
 
+    /**
+     * 根据指标判断告警信息
+     * @param quotaDTO
+     */
+    AlarmEntity verifyQuota(QuotaDTO quotaDTO);
 
 
-
-
+    /**
+     * 根据设备信息判断
+     * @param deviceInfoDTO
+     */
+    DeviceInfoDTO verifyDeviceInfo(DeviceInfoDTO deviceInfoDTO);
 
 }
