@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 import com.yikekong.dto.DeviceInfoDTO;
+import com.yikekong.dto.QuotaDTO;
 import com.yikekong.entity.QuotaEntity;
 
 import java.util.List;
@@ -23,5 +24,9 @@ public interface QuotaService extends IService<QuotaEntity>{
      */
     DeviceInfoDTO analysis(String topic, Map<String, Object> payloadMap);
 
-
+    /***
+     * 保存指标数据到influxDb
+     * @param quotaDTOList
+     */
+    void saveQuotaToInflux(List<QuotaDTO> quotaDTOList);
 }

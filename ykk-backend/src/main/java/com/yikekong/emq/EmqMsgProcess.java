@@ -66,6 +66,8 @@ public class EmqMsgProcess implements MqttCallback {
             deviceInfoDTO= alarmService.verifyDeviceInfo(deviceInfoDTO);  //返回包含了告警判断的对象
             //保存设备信息
             deviceService.saveDeviceInfo(deviceInfoDTO.getDevice());
+            //保存指标数据
+            quotaService.saveQuotaToInflux(deviceInfoDTO.getQuotaList());
         }
     }
 

@@ -10,11 +10,14 @@ import com.google.common.collect.Lists;
 import com.yikekong.dto.DeviceDTO;
 import com.yikekong.dto.DeviceInfoDTO;
 import com.yikekong.dto.QuotaDTO;
+import com.yikekong.dto.QuotaInfo;
 import com.yikekong.entity.QuotaEntity;
+import com.yikekong.influx.InfluxRepository;
 import com.yikekong.mapper.QuotaMapper;
 import com.yikekong.service.QuotaService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,6 +27,9 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class QuotaServiceImpl extends ServiceImpl<QuotaMapper, QuotaEntity> implements QuotaService {
+
+    @Autowired
+    private InfluxRepository influxRepository;
 
     @Override
     public IPage<QuotaEntity> queryPage(Long page, Long pageSize, String name) {
@@ -100,5 +106,19 @@ public class QuotaServiceImpl extends ServiceImpl<QuotaMapper, QuotaEntity> impl
         deviceInfoDTO.setQuotaList(quotaDTOList);
 
         return deviceInfoDTO;
+    }
+
+    /***
+     * 保存指标数据到influxDb
+     * @param quotaDTOList
+     */
+    @Override
+    public void saveQuotaToInflux(List<QuotaDTO> quotaDTOList) {
+        for(QuotaDTO quotaDTO:quotaDTOList){
+            QuotaInfo quotaInfo=new QuotaInfo();
+            BeanUtils.copyProperties(quotaDTO,quotaInfo);//拷贝属性
+            quotaInfo.setQuotaId(quotaDTO.getId()+"");//指标id
+            influxRepository.add(quotaInfo);
+        }
     }
 }
