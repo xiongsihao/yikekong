@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 
 import com.yikekong.dto.DeviceInfoDTO;
 import com.yikekong.dto.QuotaDTO;
+import com.yikekong.dto.QuotaInfo;
 import com.yikekong.entity.QuotaEntity;
 
 import java.util.List;
@@ -29,4 +30,11 @@ public interface QuotaService extends IService<QuotaEntity>{
      * @param quotaDTOList
      */
     void saveQuotaToInflux(List<QuotaDTO> quotaDTOList);
+
+    /**
+     * 根据设备id查询最新指标
+     * @param deviceId
+     * @return
+     */
+    List<QuotaInfo> getLastQuotaList(String deviceId);
 }

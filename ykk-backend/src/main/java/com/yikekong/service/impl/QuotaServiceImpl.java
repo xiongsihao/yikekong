@@ -121,4 +121,16 @@ public class QuotaServiceImpl extends ServiceImpl<QuotaMapper, QuotaEntity> impl
             influxRepository.add(quotaInfo);
         }
     }
+
+    /**
+     * 根据设备id查询最新指标
+     *
+     * @param deviceId
+     * @return
+     */
+    @Override
+    public List<QuotaInfo> getLastQuotaList(String deviceId) {
+        String ql="select last(value),* from quota where deviceId='"+ deviceId+"' group by quotaId";
+        return influxRepository.query(ql,QuotaInfo.class);
+    }
 }

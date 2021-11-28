@@ -2,6 +2,7 @@ package com.yikekong.service;
 
 
 import com.yikekong.dto.DeviceDTO;
+import com.yikekong.vo.DeviceQuotaVO;
 import com.yikekong.vo.Pager;
 
 public interface DeviceService  {
@@ -46,4 +47,10 @@ public interface DeviceService  {
      * @param online
      */
     void updateOnline(String deviceId, Boolean online);
+
+    /**
+     * 查询设备详情
+     * @return
+     */
+    Pager<DeviceQuotaVO> queryDeviceQuota(Long page, Long pageSize, String deviceId, String tag, Integer state);
 }

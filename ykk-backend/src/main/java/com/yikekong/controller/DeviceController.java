@@ -2,6 +2,7 @@ package com.yikekong.controller;
 
 import com.yikekong.dto.DeviceDTO;
 import com.yikekong.service.DeviceService;
+import com.yikekong.vo.DeviceQuotaVO;
 import com.yikekong.vo.DeviceVO;
 import com.yikekong.vo.Pager;
 import lombok.extern.slf4j.Slf4j;
@@ -70,5 +71,18 @@ public class DeviceController {
         if( param.get("action").equals("client_disconnected") ){ //如果是断网
             deviceService.updateOnline(deviceId,false);
         }
+    }
+
+    /**
+     * 设备详情
+     * @return
+     */
+    @GetMapping("/deviceQuota")
+    public  Pager<DeviceQuotaVO> queryQuotaData(@RequestParam(value="page",required = false,defaultValue = "1") Long page,
+                                                @RequestParam(value = "pageSize",required = false,defaultValue = "10") Long pageSize,
+                                                @RequestParam(value = "deviceId",required = false) String deviceId,
+                                                @RequestParam(value = "tag",required = false)  String tag,
+                                                @RequestParam(value = "state",required = false)  Integer state){
+        return deviceService.queryDeviceQuota(page,pageSize,deviceId,tag,state);
     }
 }
