@@ -1,6 +1,7 @@
 package com.yikekong.controller;
 
 
+import com.yikekong.dto.QuotaAllInfo;
 import com.yikekong.exception.BussinessException;
 import com.yikekong.vo.AlarmVO;
 import com.yikekong.vo.Pager;
@@ -63,11 +64,13 @@ public class AlarmController{
     }
 
 
-
-
-
-
-
-
-
+    @GetMapping("/log")
+    public Pager<QuotaAllInfo> alarmLog(@RequestParam(value = "page",required = false,defaultValue = "1") Long page,
+                                        @RequestParam(value = "pageSize",required = false,defaultValue = "10") Long pageSize,
+                                        @RequestParam(value = "start") String start,
+                                        @RequestParam(value = "end") String end,
+                                        @RequestParam(value = "alarmName",required = false,defaultValue = "") String alarmName,
+                                        @RequestParam(value = "deviceId",required = false,defaultValue = "") String deviceId){
+        return alarmService.queryAlarmLog(page,pageSize,start,end,alarmName,deviceId);
+    }
 }

@@ -3,8 +3,10 @@ package com.yikekong.service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.yikekong.dto.DeviceInfoDTO;
+import com.yikekong.dto.QuotaAllInfo;
 import com.yikekong.dto.QuotaDTO;
 import com.yikekong.entity.AlarmEntity;
+import com.yikekong.vo.Pager;
 
 import java.util.List;
 
@@ -39,5 +41,11 @@ public interface AlarmService extends IService<AlarmEntity>{
      * @param deviceInfoDTO
      */
     DeviceInfoDTO verifyDeviceInfo(DeviceInfoDTO deviceInfoDTO);
+
+    /**
+     * 查询告警日志
+     * @return
+     */
+    Pager<QuotaAllInfo> queryAlarmLog(Long page, Long pageSize, String start, String end, String alarmName, String deviceId);
 
 }

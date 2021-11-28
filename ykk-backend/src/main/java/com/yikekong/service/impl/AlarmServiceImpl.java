@@ -6,20 +6,28 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.common.base.Strings;
-import com.yikekong.dto.DeviceDTO;
-import com.yikekong.dto.DeviceInfoDTO;
-import com.yikekong.dto.QuotaDTO;
+import com.google.common.collect.Lists;
+import com.yikekong.dto.*;
 import com.yikekong.entity.AlarmEntity;
+import com.yikekong.influx.InfluxRepository;
 import com.yikekong.mapper.AlarmMapper;
 import com.yikekong.service.AlarmService;
+import com.yikekong.vo.Pager;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 
 @Service
 public class AlarmServiceImpl extends ServiceImpl<AlarmMapper, AlarmEntity> implements AlarmService {
 
+
+    @Autowired
+    private InfluxRepository influxRepository;
 
     @Override
     public IPage<AlarmEntity> queryPage(Long page, Long pageSize, String alarmName, Integer quotaId) {
@@ -120,5 +128,65 @@ public class AlarmServiceImpl extends ServiceImpl<AlarmMapper, AlarmEntity> impl
             }
         }
         return deviceInfoDTO;
+    }
+
+    /**
+     * 查询告警日志
+     *
+     * @return
+     */
+    @Override
+    public Pager<QuotaAllInfo> queryAlarmLog(Long page, Long pageSize, String start,
+                                             String end, String alarmName, String deviceId) {
+        //1.where条件查询语句部分构建
+        StringBuilder whereSql = new StringBuilder("where alarm='1' ");
+        if (!Strings.isNullOrEmpty(start)) {
+            whereSql.append("and time>='" + start + "' ");
+        }
+        if (!Strings.isNullOrEmpty(end)) {
+            whereSql.append("and time<='" + end + "' ");
+        }
+        if (!Strings.isNullOrEmpty(alarmName)) {
+            whereSql.append("and alarmName=~/" + alarmName + "/ ");
+        }
+        if (!Strings.isNullOrEmpty(deviceId)) {
+            whereSql.append("and deviceId=~/^" + deviceId + "/ ");
+        }
+
+        //2.查询记录语句
+        StringBuilder listQl = new StringBuilder("select * from quota  ");
+        listQl.append(whereSql.toString());
+        listQl.append("order by desc limit " + pageSize + " offset " + (page - 1) * pageSize);
+
+        //3.查询记录数语句
+        StringBuilder countQl = new StringBuilder("select count(value) from quota ");
+        countQl.append(whereSql.toString());
+
+        //4.执行查询记录语句
+        List<QuotaAllInfo> quotaList = influxRepository.query(listQl.toString(), QuotaAllInfo.class);
+
+        //5.执行统计语句
+        List<QuotaCount> quotaCount = influxRepository.query(countQl.toString(), QuotaCount.class);
+
+        //6.返回结果封装
+        if (CollectionUtils.isEmpty(quotaCount)) {
+            Pager<QuotaAllInfo> pager = new Pager<>(0l, 0L);
+            pager.setPage(0);
+            pager.setItems(Lists.newArrayList());
+            return pager;
+        }
+        // 添加时间格式处理
+        for(QuotaAllInfo quotaAllInfo:quotaList){
+            //2020-09-19T09:58:34.926Z   DateTimeFormatter.ISO_OFFSET_DATE_TIME
+            //转换为 2020-09-19 09:58:34  格式
+            LocalDateTime dateTime = LocalDateTime.parse(quotaAllInfo.getTime(), DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+            String time = dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm:ss"));
+            quotaAllInfo.setTime(time);
+        }
+        Long totalCount = quotaCount.get(0).getCount();//记录数
+        Pager<QuotaAllInfo> pager = new Pager<>(totalCount, pageSize);
+        pager.setPage(page);
+        pager.setItems(quotaList);
+        return pager;
     }
 }

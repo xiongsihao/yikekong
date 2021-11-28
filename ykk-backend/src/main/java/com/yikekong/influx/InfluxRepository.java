@@ -3,12 +3,16 @@ package com.yikekong.influx;
 import lombok.extern.slf4j.Slf4j;
 import org.influxdb.InfluxDB;
 import org.influxdb.dto.Point;
+import org.influxdb.dto.Query;
+import org.influxdb.dto.QueryResult;
+import org.influxdb.impl.InfluxDBResultMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -40,5 +44,18 @@ public class InfluxRepository {
         influxDB.setDatabase(dbName);
         influxDB.write(point);
         influxDB.close();
+    }
+
+    /**
+     * 查询数据方法
+     * @param sql
+     * @param clazz
+     * @return
+     */
+    public <T> List<T> query(String sql, Class<T> clazz){
+        QueryResult queryResult = influxDB.query(new Query(sql, dbName));
+        influxDB.close();
+        InfluxDBResultMapper resultMapper = new InfluxDBResultMapper();
+        return resultMapper.toPOJO(queryResult, clazz);
     }
 }
