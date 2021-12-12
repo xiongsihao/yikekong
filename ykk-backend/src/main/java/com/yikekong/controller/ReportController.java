@@ -5,10 +5,7 @@ import com.yikekong.dto.HeapPoint;
 import com.yikekong.dto.TrendPoint;
 import com.yikekong.es.ESRepository;
 import com.yikekong.service.ReportService;
-import com.yikekong.vo.LineVO;
-import com.yikekong.vo.MonitorVO;
-import com.yikekong.vo.Pager;
-import com.yikekong.vo.PieVO;
+import com.yikekong.vo.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -110,5 +107,24 @@ public class ReportController {
             @RequestParam(value = "pageSize",required = false,defaultValue = "10") Long pageSize,
             @RequestParam(value = "quotaId")String quotaId){
         return reportService.getDeviceByQuota(page,pageSize,quotaId);
+    }
+
+    /**
+     * 报表预览
+     * @param previewVO
+     * @return
+     */
+    @PostMapping("/preview")
+    public BoardQuotaVO getPreviewData(@RequestBody PreviewVO previewVO ){
+        BoardQuotaVO boardData = reportService.getBoardData(
+                previewVO.getQuotaId(), previewVO.getDeviceIdList(), previewVO.getStart(), previewVO.getEnd(), previewVO.getType());
+
+        //时间处理
+        List<String> xdata=Lists.newArrayList();
+        for(String x:boardData.getXdata()){
+            xdata.add(formatTime(x,previewVO.getType() ))  ;
+        }
+        boardData.setXdata(xdata);
+        return boardData;
     }
 }

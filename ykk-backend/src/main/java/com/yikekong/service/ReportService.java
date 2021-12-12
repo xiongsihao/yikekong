@@ -3,6 +3,7 @@ package com.yikekong.service;
 import com.yikekong.dto.HeapPoint;
 import com.yikekong.dto.TrendPoint;
 import com.yikekong.dto.TrendPoint2;
+import com.yikekong.vo.BoardQuotaVO;
 import com.yikekong.vo.Pager;
 import com.yikekong.vo.PieVO;
 
@@ -55,4 +56,15 @@ public interface ReportService {
      */
     List<TrendPoint2> getQuotaTrend(
             String start, String end, String quotaId,String deviceId,int type);
+
+    /**
+     * 指标趋势图
+     * @param quotaId
+     * @param deviceIds
+     * @param startTime
+     * @param endTime
+     * @param type
+     * @return
+     */
+    BoardQuotaVO getBoardData(String quotaId, List<String> deviceIds, String startTime, String endTime, Integer type  );
 }

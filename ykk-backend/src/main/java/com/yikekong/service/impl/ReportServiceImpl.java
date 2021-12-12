@@ -5,6 +5,8 @@ import com.yikekong.dto.*;
 import com.yikekong.es.ESRepository;
 import com.yikekong.influx.InfluxRepository;
 import com.yikekong.service.ReportService;
+import com.yikekong.vo.BoardQuotaData;
+import com.yikekong.vo.BoardQuotaVO;
 import com.yikekong.vo.Pager;
 import com.yikekong.vo.PieVO;
 import lombok.extern.slf4j.Slf4j;
@@ -175,5 +177,35 @@ public class ReportServiceImpl implements ReportService {
             previousValue=trendPoint2.getPointValue();
         }
         return trendPoint2List;
+    }
+
+    @Override
+    public BoardQuotaVO getBoardData(String quotaId, List<String> deviceIds, String startTime, String endTime, Integer type) {
+        //参数校验
+        if( quotaId==null || deviceIds==null || deviceIds.size()==0 ){
+            return new BoardQuotaVO();
+        }
+
+        BoardQuotaVO boardQuotaVO=new BoardQuotaVO();
+        boardQuotaVO.setSeries(  Lists.newArrayList());
+
+        for( String deviceId:deviceIds ){  //循环每个设备
+            //每个设备的指标趋势
+            List<TrendPoint2> trendPoint2List = getQuotaTrend(startTime, endTime, quotaId, deviceId, type);
+
+            //x轴
+            if(boardQuotaVO.getXdata()==null){
+                boardQuotaVO.setXdata(  trendPoint2List.stream().map(trendPoint2 -> trendPoint2.getTime()  ).collect( Collectors.toList() ) );
+            }
+
+            //数据
+            BoardQuotaData boardQuotaData=new BoardQuotaData();
+            boardQuotaData.setName( deviceId );
+            boardQuotaData.setData( trendPoint2List.stream().map( trendPoint2 -> trendPoint2.getPointValue() ).collect(Collectors.toList())  );
+
+            boardQuotaVO.getSeries().add(boardQuotaData);
+
+        }
+        return boardQuotaVO;
     }
 }
