@@ -37,4 +37,6 @@ public interface QuotaService extends IService<QuotaEntity>{
      * @return
      */
     List<QuotaInfo> getLastQuotaList(String deviceId);
+
+    IPage<QuotaEntity> queryNumberQuota(Long page, Long pageSize);
 }

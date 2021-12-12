@@ -91,7 +91,7 @@ public class ReportServiceImpl implements ReportService {
         sbSql.append(startTime);
         sbSql.append("' and time<='");
         sbSql.append(endTime);
-        sbSql.append("' group by deviceId,quotaId) order by desc");
+        sbSql.append("' group by deviceId,quotaId,quotaName) order by desc");
 
         return influxRepository.query(sbSql.toString(),HeapPoint.class);
     }

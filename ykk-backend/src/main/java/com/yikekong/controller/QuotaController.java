@@ -97,4 +97,16 @@ public class QuotaController{
             throw new BussinessException("该指标使用中");
         return quotaService.removeById(id);
     }
+
+    /**
+     * 分页获取数值型指标
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    @GetMapping("/numberQuota")
+    public Pager<QuotaEntity> queryNumberQuota(@RequestParam(value = "page",required = false,defaultValue = "1") Long page,
+                                               @RequestParam(value = "pageSize",required = false,defaultValue = "10") Long pageSize){
+        return new Pager<>(quotaService.queryNumberQuota(page,pageSize));
+    }
 }
