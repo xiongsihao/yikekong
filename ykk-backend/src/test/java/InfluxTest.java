@@ -1,8 +1,10 @@
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.yikekong.YkkApplication;
 import com.yikekong.dto.QuotaInfo;
+import com.yikekong.dto.TrendPoint;
 import com.yikekong.influx.InfluxRepository;
 import com.yikekong.service.QuotaService;
+import com.yikekong.service.ReportService;
 import com.yikekong.util.JsonUtil;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,6 +27,8 @@ public class InfluxTest {
     private InfluxRepository influxDBRepository;
     @Autowired
     private QuotaService quotaService;
+    @Autowired
+    private ReportService reportService;
 
     @Test
     public void testAdd(){
@@ -48,6 +52,21 @@ public class InfluxTest {
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
+    }
+
+    @Test
+    public void testAlarmTrend(){
+
+        List<TrendPoint> trendPointList = reportService.getAlarmTrend("2021-11-01", "2021-11-30", 3);
+
+        for(TrendPoint trendPoint:trendPointList){
+            try {
+                System.out.println(JsonUtil.serialize(trendPoint));
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
+        }
+
     }
 
 }
