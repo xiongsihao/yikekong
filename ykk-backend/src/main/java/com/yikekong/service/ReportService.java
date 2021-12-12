@@ -1,5 +1,6 @@
 package com.yikekong.service;
 
+import com.yikekong.dto.HeapPoint;
 import com.yikekong.dto.TrendPoint;
 import com.yikekong.vo.PieVO;
 
@@ -28,4 +29,9 @@ public interface ReportService {
      */
     List<TrendPoint> getAlarmTrend(String start, String end, int type);
 
+    /**
+     * 获取一定时间范围之内的报警次数最多的设备指标
+     * @return
+     */
+    List<HeapPoint> getTop10Alarm(String startTime, String endTime);
 }

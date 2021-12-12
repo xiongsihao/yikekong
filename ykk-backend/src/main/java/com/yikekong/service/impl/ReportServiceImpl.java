@@ -1,6 +1,7 @@
 package com.yikekong.service.impl;
 
 import com.google.common.collect.Lists;
+import com.yikekong.dto.HeapPoint;
 import com.yikekong.dto.TrendPoint;
 import com.yikekong.es.ESRepository;
 import com.yikekong.influx.InfluxRepository;
@@ -79,5 +80,19 @@ public class ReportServiceImpl implements ReportService {
         List<TrendPoint> trendPointList = influxRepository.query(ql.toString(), TrendPoint.class);
 
         return trendPointList;
+    }
+
+    @Override
+    public List<HeapPoint> getTop10Alarm(String startTime, String endTime) {
+        StringBuilder sbSql =
+                new StringBuilder("select top(heapValue,deviceId,quotaId,quotaName,10) as heapValue " +
+                        " from(select count(value) as heapValue from quota where alarm='1' ");
+        sbSql.append("and time>='");
+        sbSql.append(startTime);
+        sbSql.append("' and time<='");
+        sbSql.append(endTime);
+        sbSql.append("' group by deviceId,quotaId) order by desc");
+
+        return influxRepository.query(sbSql.toString(),HeapPoint.class);
     }
 }

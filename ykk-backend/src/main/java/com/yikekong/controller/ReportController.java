@@ -1,6 +1,7 @@
 package com.yikekong.controller;
 
 import com.google.common.collect.Lists;
+import com.yikekong.dto.HeapPoint;
 import com.yikekong.dto.TrendPoint;
 import com.yikekong.es.ESRepository;
 import com.yikekong.service.ReportService;
@@ -13,6 +14,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 /**
@@ -61,9 +64,40 @@ public class ReportController {
         lineVO.setXdata(Lists.newArrayList());
         lineVO.setSeries(Lists.newArrayList());
         trendPointList.forEach( t->{
-            lineVO.getXdata().add( t.getTime() );
+            //返回的日期格式是 2020-09-01T00:00:00Z，这里需要根据type显示为对应日期格式
+            lineVO.getXdata().add( formatTime(t.getTime(),type) );
             lineVO.getSeries().add( t.getPointValue().longValue());
         });
         return lineVO;
+    }
+
+    /**
+     * 格式化日期串
+     * @param time
+     * @param type
+     * @return
+     */
+    private String formatTime(String time,int type){
+        LocalDateTime localTime = LocalDateTime.parse(time, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+        if(type == 1){
+            return  localTime.getMinute()+"";
+        }else if(type == 2){
+            return localTime.getHour()+"";
+        }else if(type == 3){
+            return localTime.getMonthValue()+"月"+localTime.getDayOfMonth()+"日";
+        }
+        return time;
+    }
+
+    /**
+     * 获取一定时间范围之内的告警次数前10最多的设备指标
+     * @param startTime
+     * @param endTime
+     * @return
+     */
+    @GetMapping("/top10Alarm/{startTime}/{endTime}")
+    public List<HeapPoint> getTop10Alarm(@PathVariable String startTime, @PathVariable String endTime){
+        return reportService
+                .getTop10Alarm(startTime,endTime);
     }
 }
