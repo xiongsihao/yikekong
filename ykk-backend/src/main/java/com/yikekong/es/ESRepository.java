@@ -13,6 +13,8 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.client.core.CountRequest;
+import org.elasticsearch.client.core.CountResponse;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
@@ -234,5 +236,66 @@ public class ESRepository {
             log.error("查询设备失败");
             return null;
         }
+    }
+
+    /**
+     * 统计所有设备数量
+     * @return
+     */
+    public Long getAllDeviceCount(){
+
+        CountRequest countRequest=new CountRequest("devices");
+        //QueryBuilders.matchAllQuery()表示匹配所有的记录
+        countRequest.query( QueryBuilders.matchAllQuery() );
+        try {
+            CountResponse response = restHighLevelClient.count(countRequest, RequestOptions.DEFAULT);
+            return response.getCount();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return 0L;
+        }
+    }
+
+    /**
+     * 统计所有离线设备数量
+     * @return
+     */
+    public Long getOfflineCount(){
+
+        CountRequest countRequest=new CountRequest("devices");
+        BoolQueryBuilder boolQueryBuilder=QueryBuilders.boolQuery();
+        boolQueryBuilder.must( QueryBuilders.termQuery("online",false)  );
+
+        countRequest.query( boolQueryBuilder );
+
+        try {
+            CountResponse response = restHighLevelClient.count(countRequest, RequestOptions.DEFAULT);
+            return response.getCount();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return 0L;
+        }
+    }
+
+    /**
+     * 统计所有告警设备数量
+     * @return
+     */
+    public Long getAlarmCount(){
+
+        CountRequest countRequest=new CountRequest("devices");
+        BoolQueryBuilder boolQueryBuilder=QueryBuilders.boolQuery();
+        boolQueryBuilder.must( QueryBuilders.termQuery("online",true)  );
+        boolQueryBuilder.must( QueryBuilders.termQuery("alarm",true)  );
+        countRequest.query( boolQueryBuilder );
+
+        try {
+            CountResponse response = restHighLevelClient.count(countRequest, RequestOptions.DEFAULT);
+            return response.getCount();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return 0L;
+        }
+
     }
 }
