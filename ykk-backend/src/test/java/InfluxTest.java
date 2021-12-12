@@ -2,6 +2,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.yikekong.YkkApplication;
 import com.yikekong.dto.QuotaInfo;
 import com.yikekong.dto.TrendPoint;
+import com.yikekong.dto.TrendPoint2;
 import com.yikekong.influx.InfluxRepository;
 import com.yikekong.service.QuotaService;
 import com.yikekong.service.ReportService;
@@ -69,4 +70,16 @@ public class InfluxTest {
 
     }
 
+    @Test
+    public void testQuotaTrend(){
+        List<TrendPoint2> trendPoint2List = reportService.getQuotaTrend("2021-11-01 00:00:00", "2021-11-30 23:59:59"
+                , "1", "100001", 3);
+        for( TrendPoint2 trendPoint2:trendPoint2List ){
+            try {
+                System.out.println( JsonUtil.serialize(trendPoint2) );
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }

@@ -1,10 +1,7 @@
 package com.yikekong.service.impl;
 
 import com.google.common.collect.Lists;
-import com.yikekong.dto.HeapPoint;
-import com.yikekong.dto.QuotaCount;
-import com.yikekong.dto.QuotaInfo;
-import com.yikekong.dto.TrendPoint;
+import com.yikekong.dto.*;
 import com.yikekong.es.ESRepository;
 import com.yikekong.influx.InfluxRepository;
 import com.yikekong.service.ReportService;
@@ -128,5 +125,55 @@ public class ReportServiceImpl implements ReportService {
         Pager<String> pager=new Pager<String>(count,pageSize);
         pager.setItems(deviceIdList);
         return pager;
+    }
+
+    @Override
+    public List<TrendPoint2> getQuotaTrend(String startTime, String endTime, String quotaId, String deviceId, int type) {
+
+        StringBuilder ql=new StringBuilder("select first(value) as pointValue from quota ");
+        ql.append("where time>='"+ startTime+"' and time<='"+ endTime +"' "  );
+        ql.append("and quotaId='"+quotaId +"' ");
+        ql.append("and deviceId='"+ deviceId +"' ");
+
+        if(type==1){ //1小时
+            ql.append("group by time(1m)");
+        }
+        if(type==2){ //1天
+            ql.append("group by time(1h)");
+        }
+        if(type==3){ //7天
+            ql.append("group by time(1d)");
+        }
+        List<TrendPoint2> trendPoint2List = influxRepository.query(ql.toString(), TrendPoint2.class);
+        return replenish(trendPoint2List);
+    }
+
+    /**
+     * 填充数据
+     * @param trendPoint2List
+     * @return
+     */
+    private List<TrendPoint2> replenish(List<TrendPoint2> trendPoint2List){
+
+        //当第一个值为null时，赋为1
+        Double  previousValue=null;// 上一个值
+        for(TrendPoint2 trendPoint2: trendPoint2List ){
+            if(trendPoint2.getPointValue()!=null){
+                previousValue=trendPoint2.getPointValue();
+                break;
+            }
+        }
+        if(previousValue==null){
+            previousValue=0d;
+        }
+
+        //数据填充逻辑 当前值为null时，则填充为上一个时间段的值
+        for( TrendPoint2 trendPoint2: trendPoint2List){
+            if(trendPoint2.getPointValue()==null){
+                trendPoint2.setPointValue(previousValue);
+            }
+            previousValue=trendPoint2.getPointValue();
+        }
+        return trendPoint2List;
     }
 }
