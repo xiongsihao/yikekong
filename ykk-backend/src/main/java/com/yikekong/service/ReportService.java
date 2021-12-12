@@ -2,6 +2,7 @@ package com.yikekong.service;
 
 import com.yikekong.dto.HeapPoint;
 import com.yikekong.dto.TrendPoint;
+import com.yikekong.vo.Pager;
 import com.yikekong.vo.PieVO;
 
 import java.util.List;
@@ -34,4 +35,11 @@ public interface ReportService {
      * @return
      */
     List<HeapPoint> getTop10Alarm(String startTime, String endTime);
+
+    /**
+     * 通过指标获取关联设备
+     * @param quotaId
+     * @return
+     */
+    Pager<String> getDeviceByQuota(Long page, Long pageSize, String quotaId);
 }

@@ -7,12 +7,10 @@ import com.yikekong.es.ESRepository;
 import com.yikekong.service.ReportService;
 import com.yikekong.vo.LineVO;
 import com.yikekong.vo.MonitorVO;
+import com.yikekong.vo.Pager;
 import com.yikekong.vo.PieVO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -99,5 +97,18 @@ public class ReportController {
     public List<HeapPoint> getTop10Alarm(@PathVariable String startTime, @PathVariable String endTime){
         return reportService
                 .getTop10Alarm(startTime,endTime);
+    }
+
+    /**
+     * 通过指标查询设备列表
+     * @param quotaId
+     * @return
+     */
+    @GetMapping("/devices")
+    public Pager<String> getDeviceByQuota(
+            @RequestParam(value = "page",required = false,defaultValue = "1") Long page,
+            @RequestParam(value = "pageSize",required = false,defaultValue = "10") Long pageSize,
+            @RequestParam(value = "quotaId")String quotaId){
+        return reportService.getDeviceByQuota(page,pageSize,quotaId);
     }
 }

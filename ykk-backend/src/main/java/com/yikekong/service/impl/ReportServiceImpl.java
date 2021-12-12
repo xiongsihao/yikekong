@@ -2,16 +2,20 @@ package com.yikekong.service.impl;
 
 import com.google.common.collect.Lists;
 import com.yikekong.dto.HeapPoint;
+import com.yikekong.dto.QuotaCount;
+import com.yikekong.dto.QuotaInfo;
 import com.yikekong.dto.TrendPoint;
 import com.yikekong.es.ESRepository;
 import com.yikekong.influx.InfluxRepository;
 import com.yikekong.service.ReportService;
+import com.yikekong.vo.Pager;
 import com.yikekong.vo.PieVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author : xsh
@@ -94,5 +98,35 @@ public class ReportServiceImpl implements ReportService {
         sbSql.append("' group by deviceId,quotaId,quotaName) order by desc");
 
         return influxRepository.query(sbSql.toString(),HeapPoint.class);
+    }
+
+    @Override
+    public Pager<String> getDeviceByQuota(Long page, Long pageSize, String quotaId) {
+
+        String fromQl=" from ( select deviceId,value from quota where quotaId='"+ quotaId+"' group by deviceId,quotaId  ) ";
+
+        String listQl="select distinct(deviceId ) as deviceId "+fromQl+" limit "+pageSize  +" offset "+(page-1)*pageSize;
+
+        String countQl=" select count( distinct(deviceId )) as count "+fromQl;
+
+        List<QuotaInfo> quotaInfoList = influxRepository.query(listQl, QuotaInfo.class);
+
+        //设备id列表
+        List<String> deviceIdList = quotaInfoList.stream().map(quotaInfo -> quotaInfo.getDeviceId()).collect(Collectors.toList());
+
+        //统计记录个数
+        List<QuotaCount> quotaCountList = influxRepository.query(countQl, QuotaCount.class);
+
+        if( quotaCountList==null || quotaCountList.size()==0 ){
+            Pager<String> pager=new Pager<String>(0L,0L);
+            pager.setItems(Lists.newArrayList());
+            return pager;
+        }
+
+        Long count = quotaCountList.get(0).getCount();
+
+        Pager<String> pager=new Pager<String>(count,pageSize);
+        pager.setItems(deviceIdList);
+        return pager;
     }
 }
