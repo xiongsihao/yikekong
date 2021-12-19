@@ -2,10 +2,12 @@ package com.yikekong.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.yikekong.config.MybatisRedisCache;
 import com.yikekong.entity.AlarmEntity;
 import org.apache.ibatis.annotations.*;
 
 @Mapper
+@CacheNamespace(implementation= MybatisRedisCache.class,eviction=MybatisRedisCache.class)
 public interface AlarmMapper extends BaseMapper<AlarmEntity>{
     @Results(id="alarmMap",value = {
             @Result(property = "quota",column = "quota_id",one = @One(select = "com.yikekong.mapper.QuotaMapper.selectById")),
