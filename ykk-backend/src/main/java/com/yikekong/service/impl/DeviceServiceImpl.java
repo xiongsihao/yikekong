@@ -1,5 +1,6 @@
 package com.yikekong.service.impl;
 import com.google.common.collect.Lists;
+import com.yikekong.common.SystemDefinition;
 import com.yikekong.dto.DeviceDTO;
 import com.yikekong.dto.QuotaInfo;
 import com.yikekong.es.ESRepository;
@@ -10,6 +11,7 @@ import com.yikekong.vo.Pager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,7 +24,8 @@ public class DeviceServiceImpl implements DeviceService{
     private ESRepository esRepository;
     @Autowired
     private QuotaService quotaService;
-
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     /**
      * 更改设备状态
@@ -35,7 +38,10 @@ public class DeviceServiceImpl implements DeviceService{
     public boolean setStatus(String deviceId, Boolean status) {
         DeviceDTO deviceDTO = findDevice(deviceId);
         if( deviceDTO==null ) return false;
-        return esRepository.updateStatus(deviceId,status);
+        boolean b = esRepository.updateStatus(deviceId, status);
+        deviceDTO.setStatus(status);
+        refreshDevice(deviceDTO);
+        return b;
     }
 
     /**
@@ -44,7 +50,11 @@ public class DeviceServiceImpl implements DeviceService{
      * @return
      */
     private DeviceDTO findDevice(String deviceId){
-        DeviceDTO deviceDTO = esRepository.searchDeviceById(deviceId);
+        DeviceDTO deviceDTO = (DeviceDTO)redisTemplate.boundHashOps(SystemDefinition.DEVICE_KEY).get(deviceId);
+        if(null == deviceDTO){
+            deviceDTO = esRepository.searchDeviceById(deviceId);
+            refreshDevice(deviceDTO);
+        }
         return deviceDTO;
     }
 
@@ -74,6 +84,7 @@ public class DeviceServiceImpl implements DeviceService{
             //如果可以查询到，更新告警信息
             esRepository.updateDevicesAlarm(deviceDTO);
         }
+        refreshDevice(deviceDTO);//刷新到缓存
         return true;
     }
 
@@ -94,6 +105,8 @@ public class DeviceServiceImpl implements DeviceService{
 
         deviceDTO.setOnline(online);
         esRepository.updateOnline(deviceId,online);
+        deviceDTO.setOnline(online);
+        refreshDevice(deviceDTO);
     }
 
     /**
@@ -122,5 +135,14 @@ public class DeviceServiceImpl implements DeviceService{
         pageResult.setItems(deviceQuotaVOList);
 
         return pageResult;
+    }
+
+    /**
+     * 刷新缓存
+     * @param deviceDTO
+     */
+    private void refreshDevice(DeviceDTO deviceDTO) {
+        if(deviceDTO == null) return;
+        redisTemplate.boundHashOps(SystemDefinition.DEVICE_KEY).put(deviceDTO.getDeviceId(),deviceDTO );
     }
 }
