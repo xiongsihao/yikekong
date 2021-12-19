@@ -1,8 +1,11 @@
 package com.yikekong.core;
 
 import com.yikekong.emq.EmqClient;
+import com.yikekong.entity.GPSEntity;
+import com.yikekong.service.GpsService;
 import com.yikekong.service.QuotaService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.util.Strings;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -22,6 +25,8 @@ public class Monitor{
     private EmqClient emqClient;
     @Autowired
     private QuotaService quotaService;
+    @Autowired
+    private GpsService gpsService;
 
     @PostConstruct
     public void init(){
@@ -38,5 +43,16 @@ public class Monitor{
                 e.printStackTrace();
             }
         });
+
+        //----------------订阅gps主题数据-------------------
+        GPSEntity gpsEntity = gpsService.getGps();
+        if(gpsEntity == null) return;
+        try {
+            if(Strings.isNotEmpty(gpsEntity.getSubject())){  //如果主题不为空
+                emqClient.subscribe("$queue/"+gpsEntity.getSubject());
+            }
+        } catch (MqttException e) {
+            log.error("订阅主题出错：",e);
+        }
     }
 }

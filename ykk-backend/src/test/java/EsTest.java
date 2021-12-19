@@ -1,6 +1,7 @@
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.yikekong.YkkApplication;
 import com.yikekong.dto.DeviceDTO;
+import com.yikekong.dto.DeviceLocation;
 import com.yikekong.es.ESRepository;
 import com.yikekong.util.JsonUtil;
 import org.junit.Test;
@@ -8,6 +9,8 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import java.util.List;
 
 /**
  * @author : xsh
@@ -77,5 +80,18 @@ public class EsTest {
         Long alarmCount = esRepository.getAlarmCount();//告警设备数量
         System.out.println("告警设备："+alarmCount);
 
+    }
+
+    /**
+     * 测试es地理位置搜索方法  搜索指定经纬度一定范围内的坐标
+     */
+    @Test
+    public void testGEO(){
+        List<DeviceLocation> deviceLocations = esRepository.searchDeviceLocation(40.722, -73.989, 10);
+        try {
+            System.out.println(JsonUtil.serialize(deviceLocations));
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
     }
 }

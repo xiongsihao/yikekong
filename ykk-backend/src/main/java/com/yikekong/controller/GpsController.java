@@ -1,5 +1,6 @@
 package com.yikekong.controller;
 
+import com.yikekong.dto.DeviceFullInfo;
 import com.yikekong.entity.GPSEntity;
 import com.yikekong.service.GpsService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +36,19 @@ public class GpsController{
     }
 
 
-
+    /**
+     * 根据经纬度获取设备信息
+     * @param lat
+     * @param lon
+     * @param distance
+     * @return
+     */
+    @GetMapping("/deviceList/{lat}/{lon}/{distance}")
+    public List<DeviceFullInfo> getDeviceFullInfo(
+            @PathVariable Double lat,
+            @PathVariable Double lon,
+            @PathVariable Integer distance){
+        return gpsService.getDeviceFullInfo(lat,lon,distance);
+    }
 
 }

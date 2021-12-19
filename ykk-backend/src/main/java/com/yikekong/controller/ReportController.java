@@ -125,6 +125,7 @@ public class ReportController {
             xdata.add(formatTime(x,previewVO.getType() ))  ;
         }
         boardData.setXdata(xdata);
+        boardData.setName("设备预览面板");
         return boardData;
     }
 }

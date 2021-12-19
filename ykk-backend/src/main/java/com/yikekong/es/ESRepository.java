@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.yikekong.dto.DeviceDTO;
+import com.yikekong.dto.DeviceLocation;
 import com.yikekong.util.JsonUtil;
 import com.yikekong.vo.Pager;
 import lombok.extern.slf4j.Slf4j;
@@ -15,16 +16,21 @@ import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.core.CountRequest;
 import org.elasticsearch.client.core.CountResponse;
+import org.elasticsearch.common.geo.GeoDistance;
+import org.elasticsearch.common.unit.DistanceUnit;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.GeoDistanceQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.sort.GeoDistanceSortBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -297,5 +303,69 @@ public class ESRepository {
             return 0L;
         }
 
+    }
+
+    /**
+     * 更新设备gps信息
+     * @param deviceLocation
+     */
+    public void saveLocation(DeviceLocation deviceLocation){
+        try{
+            IndexRequest request = new IndexRequest("gps");
+            request.source("location",deviceLocation.getLocation());
+            request.id(deviceLocation.getDeviceId());
+            restHighLevelClient.index(request,RequestOptions.DEFAULT);
+        }catch (Exception e){
+            log.error("update es error",e);
+        }
+    }
+
+    /**
+     * 搜索一定距离之内的设备
+     * @param distance 距离坐标点半径
+     * @return
+     */
+    public List<DeviceLocation> searchDeviceLocation(Double lat,Double lon,Integer distance){
+        SearchRequest searchRequest = new SearchRequest("gps");
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+
+        //中心点及半径构建
+        GeoDistanceQueryBuilder geoDistanceQueryBuilder = new GeoDistanceQueryBuilder("location");
+        geoDistanceQueryBuilder.distance(distance, DistanceUnit.KILOMETERS);
+        geoDistanceQueryBuilder.point(lat,lon);
+        //从近到远排序规则构建
+        GeoDistanceSortBuilder distanceSortBuilder = new GeoDistanceSortBuilder("location",lat,lon);
+        distanceSortBuilder.unit(DistanceUnit.KILOMETERS);
+        distanceSortBuilder.order(SortOrder.ASC);
+        distanceSortBuilder.geoDistance(GeoDistance.ARC);//ARC精准度高，计算较慢
+
+        searchSourceBuilder.sort(distanceSortBuilder);
+        searchSourceBuilder.query(geoDistanceQueryBuilder);
+
+        //只取前200个
+        searchSourceBuilder.from(0);
+        searchSourceBuilder.size(200);
+        searchRequest.source(searchSourceBuilder);
+
+        try {
+            SearchResponse searchResponse = restHighLevelClient.search(searchRequest,RequestOptions.DEFAULT);
+            SearchHits hits = searchResponse.getHits();
+            if(hits.getTotalHits().value <= 0){
+                return Lists.newArrayList();
+            }
+            List<DeviceLocation> deviceLocationList = Lists.newArrayList();
+            Arrays.stream(hits.getHits()).forEach(h->{
+                DeviceLocation deviceLocation = new DeviceLocation();
+                deviceLocation.setDeviceId(h.getId());
+                deviceLocation.setLocation(h.getSourceAsMap().get("location").toString());
+                deviceLocationList.add(deviceLocation);
+            });
+
+            return deviceLocationList;
+        } catch (IOException e) {
+            log.error("search location error",e);
+
+            return Lists.newArrayList();
+        }
     }
 }
