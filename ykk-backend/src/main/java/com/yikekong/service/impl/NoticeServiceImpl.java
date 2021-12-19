@@ -1,13 +1,18 @@
 package com.yikekong.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.yikekong.common.SystemDefinition;
 import com.yikekong.config.WebHookConfig;
+import com.yikekong.dto.AlarmMsg;
 import com.yikekong.dto.DeviceLocation;
 import com.yikekong.dto.QuotaDTO;
+import com.yikekong.emq.EmqClient;
 import com.yikekong.service.NoticeService;
 import com.yikekong.util.HttpUtil;
+import com.yikekong.util.JsonUtil;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -28,6 +33,8 @@ public class NoticeServiceImpl implements NoticeService {
     private RedisTemplate redisTemplate;
     @Autowired
     private WebHookConfig webHookConfig;
+    @Autowired
+    private EmqClient emqClient;
 
     @Override
     public void quotaTransfer(List<QuotaDTO> quotaDTOList) {
@@ -45,6 +52,7 @@ public class NoticeServiceImpl implements NoticeService {
                     redisTemplate.boundValueOps(key).set(quotaDTO.getStringValue(), quotaDTO.getCycle(), TimeUnit.MINUTES);
                 }
             }
+            sendAlarm( quotaDTO );  //报警推送前端
         }
     }
 
@@ -56,6 +64,9 @@ public class NoticeServiceImpl implements NoticeService {
             map.put("online",online);
             HttpUtil.httpPost(webHookConfig.getOnline() , map);
         }
+        if(!online){
+            this.disconnectionAlarm(deviceId);
+        }
     }
     @Override
     public void gpsTransfer(DeviceLocation deviceLocation) {
@@ -64,4 +75,46 @@ public class NoticeServiceImpl implements NoticeService {
         }
     }
 
+    /**
+     * 告警前端推送
+     * @param quotaDTO
+     */
+    private void sendAlarm(QuotaDTO quotaDTO){
+        if( !"1".equals( quotaDTO.getAlarm()  )){
+            //不是告警 直接return不处理
+            return;
+        }
+        AlarmMsg alarmMsg=new AlarmMsg();
+        BeanUtils.copyProperties( quotaDTO,alarmMsg );
+        alarmMsg.setLevel( Integer.parseInt(quotaDTO.getLevel() ) );
+        alarmMsg.setOnline(true);
+
+        //发送到emq
+        try {
+            emqClient.publish("/device/alarm", JsonUtil.serialize(alarmMsg)   );
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 断网前段推送
+     * @param deviceId
+     */
+    public void disconnectionAlarm(String deviceId) {
+        //以web开头的client为系统前端,monitor开头的是亿可控服务端；其它的才是设备，此处仅监控设备断网
+        if(deviceId.startsWith("webclient") || deviceId.startsWith("monitor")){
+            return;
+        }
+        AlarmMsg alarmMsg = new AlarmMsg();
+        alarmMsg.setLevel(1);
+        alarmMsg.setAlarmName("设备断网");
+        alarmMsg.setDeviceId(deviceId);
+        alarmMsg.setOnline(false);
+        try {
+            emqClient.publish("/device/alarm", JsonUtil.serialize(alarmMsg)   );
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+    }
 }
