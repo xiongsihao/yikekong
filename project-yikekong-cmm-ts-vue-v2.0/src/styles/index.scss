@@ -1,0 +1,75 @@
+// @import './variables.scss'; // Already imported in style-resources-loader
+// @import './mixins.scss'; // Already imported in style-resources-loader
+@import './transition.scss';
+@import './svgicon.scss';
+// @import './font-icon.scss';
+@import 'https://at.alicdn.com/t/font_1970909_qog2b4ne0a.css';
+
+
+/* Global scss */
+
+body {
+  height: 100%;
+  min-width: 1240px;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+  background-color: #f3f4f7;
+  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica Neue, Helvetica, PingFang SC, Hiragino Sans GB, Microsoft YaHei, Arial, sans-serif;
+}
+
+html {
+  height: 100%;
+  background-color: #f3f4f7;
+}
+.BMap_cpyCtrl{
+  display: none;
+}
+.anchorBL{
+  display: none;
+}
+#app {
+  height: 100%;
+}
+
+*,
+*:before,
+*:after {
+  box-sizing: border-box;
+}
+
+a,
+a:focus,
+a:hover {
+  color: inherit;
+  outline: none;
+  text-decoration: none;
+}
+
+div:focus {
+  outline: none;
+}
+
+.clearfix {
+  @include clearfix;
+}
+
+.app-container {
+  padding: 20px;
+}
+
+.el-form--inline .el-form-item{
+  margin-right: 25px;
+}
+.flex-column-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-row-center {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
