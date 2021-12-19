@@ -2,6 +2,7 @@ package com.yikekong.controller;
 
 import com.yikekong.dto.DeviceDTO;
 import com.yikekong.service.DeviceService;
+import com.yikekong.service.NoticeService;
 import com.yikekong.vo.DeviceQuotaVO;
 import com.yikekong.vo.DeviceVO;
 import com.yikekong.vo.Pager;
@@ -18,6 +19,8 @@ public class DeviceController {
 
     @Autowired
     private DeviceService deviceService;
+    @Autowired
+    private NoticeService noticeService;
 
     /**
      * 设置状态的接口
@@ -67,9 +70,11 @@ public class DeviceController {
         String deviceId = param.get("clientid");  //提取设备id
         if( param.get("action").equals("client_connected") ){ //如果是联网
             deviceService.updateOnline(deviceId,true);
+            noticeService.onlineTransfer( deviceId,true);//联网透传
         }
         if( param.get("action").equals("client_disconnected") ){ //如果是断网
             deviceService.updateOnline(deviceId,false);
+            noticeService.onlineTransfer( deviceId,false);//断网透传
         }
     }
 

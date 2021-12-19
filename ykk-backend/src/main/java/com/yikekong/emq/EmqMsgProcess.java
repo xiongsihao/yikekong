@@ -4,10 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yikekong.dto.DeviceInfoDTO;
 import com.yikekong.dto.DeviceLocation;
 import com.yikekong.es.ESRepository;
-import com.yikekong.service.AlarmService;
-import com.yikekong.service.DeviceService;
-import com.yikekong.service.GpsService;
-import com.yikekong.service.QuotaService;
+import com.yikekong.service.*;
 import com.yikekong.util.JsonUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
@@ -46,6 +43,9 @@ public class EmqMsgProcess implements MqttCallback {
     @Autowired
     private ESRepository esRepository;
 
+    @Autowired
+    private NoticeService noticeService;
+
     //连接丢失时触发
     @Override
     public void connectionLost(Throwable throwable) {
@@ -78,6 +78,8 @@ public class EmqMsgProcess implements MqttCallback {
             deviceService.saveDeviceInfo(deviceInfoDTO.getDevice());
             //保存指标数据
             quotaService.saveQuotaToInflux(deviceInfoDTO.getQuotaList());
+            //---------指标数据透传----------------------
+            noticeService.quotaTransfer(deviceInfoDTO.getQuotaList());
         }
 
         //处理gps数据
@@ -85,6 +87,7 @@ public class EmqMsgProcess implements MqttCallback {
         if (deviceLocation != null) {
             log.info("gps解析结果：{}", JsonUtil.serialize(deviceLocation));
             esRepository.saveLocation(deviceLocation);
+            noticeService.gpsTransfer(deviceLocation);//GPS透传
         }
     }
 
